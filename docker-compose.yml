@@ -1,0 +1,16 @@
+version: "3.3"
+
+services:
+  bot:
+    container_name: bot-Alex-copy
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - uslugi
+    volumes:
+      - ../images/:/pkg/images/
+    restart: always
+
+networks:
+  uslugi:
