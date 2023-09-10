@@ -36,7 +36,7 @@ def isImages( questionnaire:Questionnaire, messages:dict) -> (Questionnaire, str
         name = messages.video.file_unique_id + ".WEBM"
         # path = os.path.join(f"pkg/images/{name}")
     questionnaire.images.append(name)
-    path = f"pkg/images/{name}"
+    path = f"/pkg/images/{name}"
     return questionnaire, path
 
 def isAVideo(path: str) -> bool:

@@ -239,24 +239,25 @@ async def next_handler(callback: types.CallbackQuery, state: FSMContext) -> None
         await state.set_state(stateQuest.arr[index_state+1])
         data = await state.get_data()
         questionnaire = checksQuest.isQuestionnaire(data, callback.from_user.id)
-        group_messages = data["media_groups"]
-        if group_messages:
-            photo_count = len(group_messages)
-            await callback.message.answer(f"Спасибо за группу медиа с {photo_count} фото, !")
+        if "media_groups" in data.keys():
+            group_messages = data["media_groups"]
+            if group_messages:
+                photo_count = len(group_messages)
+                await callback.message.answer(f"Спасибо за группу медиа с {photo_count} фото, !")
 
-            for messages in group_messages:
-                try:
-                    questionnaire, path = checksQuest.isImages(questionnaire, messages)
-                    print(path, type(path))
-                    if checksQuest.isAVideo(path):
-                        await bot.download(messages.video, destination=path)
+                for messages in group_messages:
+                    try:
+                        questionnaire, path = checksQuest.isImages(questionnaire, messages)
+                        print(path, type(path))
+                        if checksQuest.isAVideo(path):
+                            await bot.download(messages.video, destination=path)
+                        else:
+                            await bot.download(messages.photo[-1], destination=path)
+                    except FileExistsError: 
+                        print("Файл существует")
                     else:
-                        await bot.download(messages.photo[-1], destination=path)
-                except FileExistsError: 
-                    print("Файл существует")
-                else:
-                    print('Всё хорошо.')
-            await state.set_data({"questionnaire": questionnaire})
+                        print('Всё хорошо.')
+                await state.set_data({"questionnaire": questionnaire})
         if checksQuest.sendQuest(questionnaire):
             await callback.message.answer(quest.arr_str[index_state+1][0])
             current_state = await state.get_state()
