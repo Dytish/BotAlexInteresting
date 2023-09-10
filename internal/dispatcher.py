@@ -9,3 +9,5 @@ logging.basicConfig(level=logging.INFO)
 bd = BD_conn(CONFIG_BD)
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
+
+
