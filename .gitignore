@@ -1,4 +1,4 @@
 env/
 docker-compose.yml
 Dockerfile
-pkg/config/config
+pkg/config/config.py
