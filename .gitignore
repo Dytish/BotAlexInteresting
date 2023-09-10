@@ -1,6 +1,6 @@
 env/
 Dockerfile
 docker-compose.yaml
-pkg.config.config
+pkg/config/
 # config.ini
 # db
