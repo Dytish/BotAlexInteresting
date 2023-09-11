@@ -42,7 +42,7 @@ def check_vip(vip: int):
         с таким приоритетом в бд"""
     conn = bd.conn
     curs = conn.cursor()
-    curs.execute(comand_check_quest, (vip, ), )
+    curs.execute(comand_check_vip, (vip, ), )
     conn.commit()
     res = curs.fetchall()
     # print(len(res))
