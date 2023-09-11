@@ -42,13 +42,12 @@ class IsMedia(BaseFilter):
         return message.content_type == ContentType.PHOTO or message.content_type == ContentType.VIDEO
         # print(current_state)
         
-        return checkUser.isAdmin(message.from_user.id) 
 class CheckState(BaseFilter):
     def __init__(self, states: Optional[State] = None) -> None:
         self.states = states
     async def __call__(self, message: Message, state: FSMContext) -> bool:
         current_state = await state.get_state()
         print(current_state in self.states)
-        return checkUser.isAdmin(message.from_user.id) 
+        return (current_state in self.states)
     
 

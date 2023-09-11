@@ -20,22 +20,30 @@ class Questionnaire:
     deleted_at: datetime
     arrAttr: list = [ "images", "title", "previe", "info", "info_mob", "info_social", "vip", "sub"]
 
-    def __init__(self, user_tg_id: int , images:list = [],
+    def __init__(self, user_tg_id: int , images:list = None,
                 title: str = None, previe: str = None,
                 info: str = None, info_mob: str = None,
-                info_social: dict = {}, vip: int =10,
-                sub:datetime = datetime.now() - timedelta(days=1), deleted_at: datetime = None) -> None :
+                info_social: dict = None, vip: int = None,
+                sub:datetime = None, deleted_at: datetime = None) -> None :
         """
         Конструктор
         """
         self.user_tg_id = user_tg_id
+        if images == None:
+            images = []
         self.images = images
         self.title = title
         self.previe = previe
         self.info = info
         self.info_mob = info_mob
+        if info_social == None:
+            info_social = {}
         self.info_social = info_social
+        if vip == None:
+            vip = 10
         self.vip = vip
+        if sub == None:
+            sub = datetime.now() - timedelta(days=1)
         self.sub = sub 
         self.updated_at = datetime.now()
 

@@ -1,6 +1,7 @@
 from internal.models.questionnaire import Questionnaire
 from internal.database import questionnaire as dbUQuest
 import os
+import json
 
 def isQuestionnaire(data: dict, tg_id: int) -> Questionnaire:
     """
@@ -10,6 +11,7 @@ def isQuestionnaire(data: dict, tg_id: int) -> Questionnaire:
         questionnaire = data["questionnaire"]
     except KeyError:
         questionnaire = Questionnaire(user_tg_id=tg_id)
+    print(questionnaire.__dict__)
     return questionnaire
 
 def isMediaGroups(data: dict) -> dict:
@@ -70,12 +72,17 @@ def isInfoMob(string:str) -> bool:
     """
     return len(string) < 200
 
+def isInfoSocialValue(social_key:str) -> bool:
+    """
+    Проверка ссылки для соц сети
+    """
+    return ("http://" in social_key) or ("https://" in social_key)
+
 def isInfoSocialKey(string:str, questionnaire:Questionnaire) -> bool:
     """
     Проверка ключа для соц сети
     """
     return not(string in questionnaire.info_social.keys()) and len(string) < 50
-
 
 def isVip(vip:int) -> bool:
     """
@@ -115,7 +122,7 @@ def allowedText(index_state: int) -> bool:
     return 0 < index_state < 5
 
 def sendQuest(questionnaire: Questionnaire) -> bool:
-    questionnaire.info_social = str(questionnaire.info_social)
+    questionnaire.info_social = json.dumps(questionnaire.info_social)
     questionnaire.newQuest()
     questionnaire_tuple = questionnaire.__dict__
     print(questionnaire_tuple)

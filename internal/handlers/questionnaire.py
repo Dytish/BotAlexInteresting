@@ -155,11 +155,11 @@ async def add_quest_social_value(message: types.Message, state: FSMContext) -> N
     data = await state.get_data()
     questionnaire = checksQuest.isQuestionnaire(data, message.from_user.id)
     social_key = data["social_key"]
-    if "http://" in message.text:
+    if checksQuest.isInfoSocialValue(message.text):
         questionnaire.info_social[social_key] = message.text
         await state.set_state(stateQuest.info_social)
         await bot.send_message( message.chat.id, text= quest.str_info_social_value[0] + quest.str_info_social[0], reply_markup=quest.keyboard_quest_social) 
-        await state.set_data({"questionnaire": questionnaire})
+        await state.set_data({"questionnaire": questionnaire, "media_groups":data["media_groups"]})
     else:
         await bot.send_message( message.chat.id, text= quest.str_info_social_value[1]) 
         
