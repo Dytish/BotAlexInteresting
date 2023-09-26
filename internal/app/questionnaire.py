@@ -2,15 +2,17 @@ from aiogram import types
 import os
 
 class questionnaire:
+    path = "../images/{}"
+    cloudfilename = "/img/{}"
     str_images = ["Загрузите фото\n(Можно загрузить нескольок фото/видео)","", "Я не понимаю ваш текст\nПришлити мне фото"]
     str_title = ["Что будет в первой строчке?", "Попробуйте ввести еще раз"]
     str_previe = ["Что будет во второй строчке?", "Попробуйте ввести еще раз"]
     str_info = ["Что будет в info?", "Попробуйте ввести еще раз"]
-    str_info_mob = ["Есть номер телефона?", "Попробуйте ввести еще раз"]
+    str_info_mob = ["Введите номер телефона?", "Попробуйте ввести еще раз"]
     str_info_social = ["Хотите добавить соц. сети?", "Добавьте ссылку на соц. сети", "К сожалению такая соц. сеть есть\nПопробуйте другую", "Я не понимаю ваш текст\nНажмите на кнопку"]
     str_vip = ["Хотите добавить анкету в топ?", "Это место занято", "Вы выбрали место", "Я не понимаю ваш текст\nНажмите на кнопку"]
     str_sub = ["Хотите оформить подписку?", "Подписка не продлена", "Подписка продлена",  "Я не понимаю ваш текст\nНажмите на кнопку"]
-    str_end = ["Анкета записана", "Анкета не записана"]
+    str_end = [["Анкета записана", "Анкета изменина"], ["Анкета не записана", "Анкета не изменина"]]
     arr_str = [str_images, str_title, str_previe, str_info, str_info_mob,
                str_info_social, str_vip, str_sub, str_end]
     
@@ -68,9 +70,63 @@ class questionnaire:
     arr_keyboard = [keyboard_quest_images, keyboard_quest, 
                keyboard_quest, keyboard_quest, 
                keyboard_quest, keyboard_quest_social, 
-               keyboard_quest_vip, keyboard_quest_sub, 
-               str_end]
+               keyboard_quest_vip, keyboard_quest_sub]
     
 
-    name = "Test.jpg"
-    path = os.path.join(f"pkg/images/{name}")
+
+    button_images = types.InlineKeyboardButton(text="Изменить медиа", callback_data="edit_0")
+    button_title =  types.InlineKeyboardButton(text="Изменить название", callback_data="edit_1")
+    button_previe = types.InlineKeyboardButton(text="Изменить заголовок", callback_data="edit_2")
+    button_info = types.InlineKeyboardButton(text="Изменить основную информацию", callback_data="edit_3")
+    button_info_mob = types.InlineKeyboardButton(text="Изменить телефон", callback_data="edit_4")
+    button_info_social = types.InlineKeyboardButton(text="Изменить соц.сети", callback_data="edit_5")
+    button_vip = types.InlineKeyboardButton(text="Изменить vip", callback_data="edit_6")
+    button_sub = types.InlineKeyboardButton(text="Изменить подписку", callback_data="edit_7")
+    buttons_quest_edit = [[button_images, button_title], [button_previe, button_info], [button_info_mob,
+               button_info_social], [button_vip, button_sub],
+               [types.InlineKeyboardButton(text="Закончить изменения", callback_data="edit_end")]]
+    keyboard_quest_edit = types.InlineKeyboardMarkup(inline_keyboard=buttons_quest_edit)
+    buttons_edit = [
+        [types.InlineKeyboardButton(text="Изменить", callback_data="edit_True"), types.InlineKeyboardButton(text="Отмена", callback_data="edit_False")]
+                    ]
+    keyboard_edit = types.InlineKeyboardMarkup(inline_keyboard=buttons_edit)
+    str_edit = ['Что вы хотите изменить?']
+# --------------------------------------------------
+    buttons_edit = [
+        [types.InlineKeyboardButton(text="Отменить", callback_data="cancel")]
+    ]
+    keyboard_edit = types.InlineKeyboardMarkup(inline_keyboard=buttons_edit)
+
+    buttons_edit_images = [
+        [types.InlineKeyboardButton(text="Отправлены все фотографии", callback_data="images_отмена")],
+        [types.InlineKeyboardButton(text="Отменить", callback_data="cancel")]
+    ]
+    keyboard_edit_images = types.InlineKeyboardMarkup(inline_keyboard=buttons_edit_images)
+
+    buttons_edit_vip = [
+        [types.InlineKeyboardButton(text="Первое место", callback_data="vip_1"), 
+         types.InlineKeyboardButton(text="Второе место", callback_data="vip_2"), 
+         types.InlineKeyboardButton(text="Третье место", callback_data="vip_3")],
+        [types.InlineKeyboardButton(text="Отменить", callback_data="cancel")]
+    ]
+    keyboard_edit_vip = types.InlineKeyboardMarkup(inline_keyboard=buttons_edit_vip)
+
+    buttons_edit_sub = [
+        [types.InlineKeyboardButton(text="Плюс 15 дней", callback_data="sub_15"), 
+         types.InlineKeyboardButton(text="Плюс 30 дней", callback_data="sub_30")],
+        [types.InlineKeyboardButton(text="Отменить", callback_data="cancel")]
+    ]
+    keyboard_edit_sub = types.InlineKeyboardMarkup(inline_keyboard=buttons_edit_sub)
+
+    buttons_edit_social = [
+        [types.InlineKeyboardButton(text="Telegram", callback_data="social_Telegram"), 
+         types.InlineKeyboardButton(text="WhatsApp", callback_data="social_WhatsApp")],
+        [types.InlineKeyboardButton(text="Добавить соц. сеть самостоятельно", callback_data="social_add")],
+        [types.InlineKeyboardButton(text="Отменить", callback_data="cancel")]
+    ]
+    keyboard_edit_social = types.InlineKeyboardMarkup(inline_keyboard=buttons_edit_social)
+
+    arr_keyboard_edit = [keyboard_edit_images, keyboard_edit, 
+               keyboard_edit, keyboard_edit, 
+               keyboard_edit, keyboard_edit_social, 
+               keyboard_edit_vip, keyboard_edit_sub]

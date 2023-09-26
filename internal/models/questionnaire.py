@@ -24,7 +24,7 @@ class Questionnaire:
                 title: str = None, previe: str = None,
                 info: str = None, info_mob: str = None,
                 info_social: dict = None, vip: int = None,
-                sub:datetime = None, deleted_at: datetime = None) -> None :
+                sub:datetime = None, deleted_at: datetime and int = None) -> None :
         """
         Конструктор
         """
@@ -46,8 +46,8 @@ class Questionnaire:
             sub = datetime.now() - timedelta(days=1)
         self.sub = sub 
         self.updated_at = datetime.now()
-
-        self.deleted_at = deleted_at
+        if deleted_at == None:
+            self.deleted_at = 0
     # def __getitem__(self, index):
 
     #     if index >= 5:
@@ -60,7 +60,10 @@ class Questionnaire:
         конкретно в подписке
         """
         if __name == "sub" and type(__value) == int:
-            __value = datetime.now() + timedelta(days=__value)
+            if self.sub > datetime.now():
+                __value = self.sub + timedelta(days=__value)
+            else:
+                __value = datetime.now() + timedelta(days=__value)
         object.__setattr__(self, __name, __value)
 
     def newQuest(self) -> None :

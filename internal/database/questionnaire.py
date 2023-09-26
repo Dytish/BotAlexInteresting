@@ -5,22 +5,34 @@ from datetime import datetime
 
 comand_check_quest = """SELECT * FROM questionnaires WHERE user_tg_id = %s"""
 comand_check_vip = """SELECT id FROM questionnaires WHERE vip = %s"""
-comand_add_quest = """INSERT INTO questionnaires (user_tg_id, images, title, 
+comand_add_quest = """INSERT INTO questionnaires (user_tg_id, title, 
                                         previe, info, info_mob, 
                                         info_social, vip, sub, 
                                         updated_at, deleted_at, created_at) 
-                                        VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+                                        VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id"""
+comand_add_images = """INSERT INTO images ( name, url, quest_id )
+                                        VALUES ( %s, %s, %s ) """
 
 comand_change_status_user = """Update questionnaires set status = %s, updated_at = %s
                                                 where id_telegram = %s"""
 
+def add_new_images( images:list ) -> None:
+    """Добавляет медиа в бд"""
+    conn = bd.conn
+    curs = conn.cursor()
+    # images = [("sada", "sadsad", 1), ("sad111a", "sa21dsad", 1)]
+    curs.executemany(comand_add_images, images)
+    conn.commit()
 
-def add_new( quest:tuple) -> None:
+def add_new( quest:tuple) -> int:
     """Добавляет пользователя в бд"""
     conn = bd.conn
     curs = conn.cursor()
     curs.execute(comand_add_quest, quest)
     conn.commit()
+    insertId = curs.fetchone()
+    print(insertId)
+    return insertId
 
 def check( id_telegram:int) ->int:
     """Проверяет есть ли анкета в бд"""

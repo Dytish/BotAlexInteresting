@@ -56,8 +56,13 @@ async def add_quest(message: types.Message, state: FSMContext) -> None:
             setattr(questionnaire, questionnaire.arrAttr[index_state], message.html_text)
             # print(questionnaire.__dict__)
             await state.update_data(questionnaire = questionnaire)
-            await state.set_state(stateQuest.arr[index_state+1])
-            await bot.send_message( message.chat.id, quest.arr_str[index_state+1][0], reply_markup=quest.arr_keyboard[index_state+1])
+            if checksQuest.isEdit(data):
+                await state.clear()
+                await state.update_data(questionnaire = questionnaire)
+                await bot.send_message( message.chat.id, quest.str_edit[0], reply_markup=quest.keyboard_quest_edit) 
+            else:
+                await state.set_state(stateQuest.arr[index_state+1])
+                await bot.send_message( message.chat.id, quest.arr_str[index_state+1][0], reply_markup=quest.arr_keyboard[index_state+1])
         else:
             await bot.send_message( message.chat.id, quest.arr_str[index_state][1], reply_markup=quest.arr_keyboard[index_state])
     else:
@@ -67,7 +72,7 @@ async def add_quest(message: types.Message, state: FSMContext) -> None:
 
 async def add_quest_vip(callback: types.CallbackQuery, state: FSMContext) -> None:
     """
-    Добавить в топ
+    Добавить в топ vip
     """
     current_state = await state.get_state()
     index_state = stateQuest.arr.index(current_state)
@@ -78,9 +83,14 @@ async def add_quest_vip(callback: types.CallbackQuery, state: FSMContext) -> Non
     if checksQuest.isVip(vip_i):
         setattr(questionnaire, questionnaire.arrAttr[index_state], vip_i)
         await state.update_data(questionnaire = questionnaire)
-        await state.set_state(stateQuest.arr[index_state+1])
-        await callback.message.answer(quest.str_vip[2])
-        await callback.message.answer( quest.arr_str[index_state+1][0], reply_markup=quest.arr_keyboard[index_state+1])
+        if checksQuest.isEdit(data):
+            await state.clear()
+            await state.update_data(questionnaire = questionnaire)
+            await callback.message.answer( quest.str_edit[0], reply_markup=quest.keyboard_quest_edit) 
+        else:
+            await state.set_state(stateQuest.arr[index_state+1])
+            await callback.message.answer(quest.str_vip[2])
+            await callback.message.answer( quest.arr_str[index_state+1][0], reply_markup=quest.arr_keyboard[index_state+1])
     else: 
         await callback.message.answer(quest.str_vip[1])
 
@@ -95,32 +105,24 @@ async def add_quest_sub(callback: types.CallbackQuery, state: FSMContext) -> Non
     sub_i = int(callback.data.split("_")[1])
     if checksQuest.isSub(sub_i):
         setattr(questionnaire, questionnaire.arrAttr[index_state], sub_i)
-        group_messages = data["media_groups"]
-        if group_messages:
-            for messages in group_messages:
-                try:
-                    questionnaire, path = checksQuest.isImages(questionnaire, messages)
-                    print(path, type(path))
-                    if checksQuest.isAVideo(path):
-                        await bot.download(messages.video, destination=path)
-                    else:
-                        await bot.download(messages.photo[-1], destination=path)
-                except FileExistsError: 
-                    print("Файл существует")
-                else:
-                    print('Всё хорошо.')
-            await state.set_data({"questionnaire": questionnaire})
-        await state.update_data(questionnaire = questionnaire)
-        # print(questionnaire.__dict__)
-        await callback.message.answer(quest.str_sub[2])
-
-        if checksQuest.sendQuest(questionnaire):
-            await state.set_state(stateQuest.arr[index_state+1])
-            await callback.message.answer(quest.arr_str[index_state+1][0])
-            current_state = await state.get_state()
-            if current_state is None:
-                return
+        if checksQuest.isEdit(data):
             await state.clear()
+            await state.update_data(questionnaire = questionnaire)
+            await callback.message.answer( quest.str_edit[0], reply_markup=quest.keyboard_quest_edit) 
+        else:
+            await download_media(data, questionnaire, callback, state)
+            
+            await state.update_data(questionnaire = questionnaire)
+            # print(questionnaire.__dict__)
+            await callback.message.answer(quest.str_sub[2])
+
+            if checksQuest.sendQuest(questionnaire):
+                await state.set_state(stateQuest.arr[index_state+1])
+                await callback.message.answer(quest.arr_str[index_state+1][0])
+                current_state = await state.get_state()
+                if current_state is None:
+                    return
+                await state.clear()
     else: 
         await callback.message.answer(quest.str_sub[1])
 
@@ -159,7 +161,10 @@ async def add_quest_social_value(message: types.Message, state: FSMContext) -> N
         questionnaire.info_social[social_key] = message.text
         await state.set_state(stateQuest.info_social)
         await bot.send_message( message.chat.id, text= quest.str_info_social_value[0] + quest.str_info_social[0], reply_markup=quest.keyboard_quest_social) 
-        await state.set_data({"questionnaire": questionnaire, "media_groups":data["media_groups"]})
+        if checksQuest.isEdit(data):
+            await state.set_data({"questionnaire": questionnaire, "media_groups":data["media_groups"], "edit": data["edit"]})
+        else:
+            await state.set_data({"questionnaire": questionnaire, "media_groups":data["media_groups"]})
     else:
         await bot.send_message( message.chat.id, text= quest.str_info_social_value[1]) 
         
@@ -195,12 +200,15 @@ async def next_handler_images_end(callback: types.CallbackQuery, state: FSMConte
     if group_messages:
         photo_count = len(group_messages)
         await callback.message.answer(f"Спасибо за группу медиа с {photo_count} медиа !")
-
-        await state.set_state(stateQuest.arr[index_state+1])
-        await callback.message.answer(quest.arr_str[index_state+1][0], reply_markup=quest.arr_keyboard[index_state+1])
+        if checksQuest.isEdit(data):
+            await state.clear()
+            await state.update_data(questionnaire = questionnaire, media_groups = data["media_groups"])
+            await callback.message.answer( quest.str_edit[0], reply_markup=quest.keyboard_quest_edit) 
+        else:
+            await state.set_state(stateQuest.arr[index_state+1])
+            await callback.message.answer(quest.arr_str[index_state+1][0], reply_markup=quest.arr_keyboard[index_state+1])
     else:
         await callback.message.answer(quest.arr_str[index_state][0], reply_markup=quest.arr_keyboard[index_state])
-
 
 async def add_quest_images(message: types.Message, state: FSMContext) -> None:
     """
@@ -211,6 +219,9 @@ async def add_quest_images(message: types.Message, state: FSMContext) -> None:
     # print( current_state)
     data = await state.get_data()
     data = checksQuest.isMediaGroups(data)
+    # print(message.photo[-1].file_id)
+    
+    # print(message.photo)
     data["media_groups"].append(message)
     await state.update_data(media_groups = data["media_groups"])
 
@@ -231,6 +242,12 @@ async def next_handler(callback: types.CallbackQuery, state: FSMContext) -> None
         index_state = stateQuest.arr.index(stateQuest.__name__+":info_social")
     else:
         index_state = stateQuest.arr.index(current_state)
+    if "images" in  current_state:
+        data = await state.get_data()
+        questionnaire = checksQuest.isQuestionnaire(data, callback.from_user.id)
+        questionnaire.images = []
+        if "media_groups" in data.keys():
+            await state.update_data(questionnaire = questionnaire, media_groups = [])
     if checksQuest.isNextState(index_state, len(stateQuest.arr)):
         await state.set_state(stateQuest.arr[index_state+1])
         await callback.message.edit_text(quest.arr_str[index_state][0], reply_markup=None)
@@ -240,38 +257,23 @@ async def next_handler(callback: types.CallbackQuery, state: FSMContext) -> None
         data = await state.get_data()
         questionnaire = checksQuest.isQuestionnaire(data, callback.from_user.id)
         if "media_groups" in data.keys():
-            group_messages = data["media_groups"]
-            if group_messages:
-                photo_count = len(group_messages)
-                await callback.message.answer(f"Спасибо за группу медиа с {photo_count} фото, !")
-
-                for messages in group_messages:
-                    try:
-                        questionnaire, path = checksQuest.isImages(questionnaire, messages)
-                        print(path, type(path))
-                        if checksQuest.isAVideo(path):
-                            await bot.download(messages.video, destination=path)
-                        else:
-                            await bot.download(messages.photo[-1], destination=path)
-                    except FileExistsError: 
-                        print("Файл существует")
-                    else:
-                        print('Всё хорошо.')
-                await state.set_data({"questionnaire": questionnaire})
+            await download_media(data, questionnaire, callback, state)
+        
         if checksQuest.sendQuest(questionnaire):
-            await callback.message.answer(quest.arr_str[index_state+1][0])
+            await callback.message.answer(quest.arr_str[index_state+1][0][0])
             current_state = await state.get_state()
             if current_state is None:
                 return
             await state.clear()
         # дописать запись в бд
-    # await callback.message.answer( quest.arr_str[index_state+1][0], reply_markup=quest.keyboard_quest)
+
 
 
 async def cancel_handler(callback: types.CallbackQuery, state: FSMContext) -> None:
     """
     Выход из всех состояний
     """
+    data = await state.get_data()
     current_state = await state.get_state()
     if current_state is None:
         return
@@ -282,17 +284,15 @@ async def cancel_handler(callback: types.CallbackQuery, state: FSMContext) -> No
     # logging.info("Cancelling state %r", current_state)
     await state.clear()
     await callback.message.edit_text(callback.message.text, reply_markup=None)
-    await callback.message.answer(quest.str_end[1])
-    # await callback.message.answer( quest.str_end[1]) 
-    # await message.answer(
-    # "Cancelled.",
-    # reply_markup=ReplyKeyboardRemove(),
-    # )
-
+    if checksQuest.isEdit(data):
+        await state.clear()
+        await callback.message.answer(quest.str_end[1][1])
+        await callback.message.answer(quest.str_edit[0], reply_markup=quest.keyboard_quest_edit)
+    else:
+        await callback.message.answer(quest.str_end[1][0])
 
 
 dp.message.register(admin_panel, IsAdmin(), F.text == "panel")
-
 dp.callback_query.register(selection_in_the_admin_panel, IsAdmin(), F.data.startswith("quest_create"))
 
 dp.callback_query.register(next_handler, IsAdmin(),  F.data == "next", CheckState(stateQuest.arr_next_end))
@@ -308,3 +308,24 @@ dp.callback_query.register(next_handler_images_end, IsAdmin(), F.data == quest.b
 dp.message.register(add_quest_images, IsAdmin(), IsMedia(), stateQuest.images)
 
 
+async def download_media(data: dict, questionnaire: Questionnaire, callback: types.CallbackQuery, state: FSMContext):
+    """
+    Скачивание медиа
+    """
+    group_messages = data["media_groups"]
+    if group_messages:
+        # photo_count = len(group_messages)
+        # await callback.message.answer(f"Спасибо за группу медиа с {photo_count} фото, !")
+        for messages in group_messages:
+            try:
+                questionnaire, path = checksQuest.isSave(questionnaire, messages)
+                
+                if checksQuest.isAVideo(path):
+                    await bot.download(messages.video, destination=path)
+                else:
+                    await bot.download(messages.photo[-1], destination=path)
+            except FileExistsError: 
+                print("Файл существует")
+            else:
+                print('Всё хорошо.')
+        await state.set_data({"questionnaire": questionnaire})
