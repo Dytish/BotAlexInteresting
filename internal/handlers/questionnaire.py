@@ -19,6 +19,7 @@ async def admin_panel(message: types.Message, state: FSMContext) -> None:
     """
     await state.clear()
     # await state.set_state(stateQuest.arr[0])
+    print(message)
     await bot.send_message( message.chat.id, quest.str_panel[0], reply_markup=quest.keyboard_quest_panel) 
 
 async def selection_in_the_admin_panel(callback: types.CallbackQuery, state: FSMContext) -> None:
@@ -59,7 +60,7 @@ async def add_quest(message: types.Message, state: FSMContext) -> None:
             if checksQuest.isEdit(data):
                 await state.clear()
                 await state.update_data(questionnaire = questionnaire)
-                await bot.send_message( message.chat.id, quest.str_edit[0], reply_markup=quest.keyboard_quest_edit) 
+                await edit_quest(questionnaire, message, state)
             else:
                 await state.set_state(stateQuest.arr[index_state+1])
                 await bot.send_message( message.chat.id, quest.arr_str[index_state+1][0], reply_markup=quest.arr_keyboard[index_state+1])
@@ -86,7 +87,7 @@ async def add_quest_vip(callback: types.CallbackQuery, state: FSMContext) -> Non
         if checksQuest.isEdit(data):
             await state.clear()
             await state.update_data(questionnaire = questionnaire)
-            await callback.message.answer( quest.str_edit[0], reply_markup=quest.keyboard_quest_edit) 
+            await edit_quest(questionnaire, callback, state)
         else:
             await state.set_state(stateQuest.arr[index_state+1])
             await callback.message.answer(quest.str_vip[2])
@@ -108,7 +109,7 @@ async def add_quest_sub(callback: types.CallbackQuery, state: FSMContext) -> Non
         if checksQuest.isEdit(data):
             await state.clear()
             await state.update_data(questionnaire = questionnaire)
-            await callback.message.answer( quest.str_edit[0], reply_markup=quest.keyboard_quest_edit) 
+            await edit_quest(questionnaire, callback, state)
         else:
             await download_media(data, questionnaire, callback, state)
             
@@ -118,7 +119,7 @@ async def add_quest_sub(callback: types.CallbackQuery, state: FSMContext) -> Non
 
             if checksQuest.sendQuest(questionnaire):
                 await state.set_state(stateQuest.arr[index_state+1])
-                await callback.message.answer(quest.arr_str[index_state+1][0])
+                await callback.message.answer(quest.arr_str[index_state+1][0][0])
                 current_state = await state.get_state()
                 if current_state is None:
                     return
@@ -136,18 +137,43 @@ async def add_quest_social(callback: types.CallbackQuery, state: FSMContext) -> 
     data = await state.get_data()
     questionnaire = checksQuest.isQuestionnaire(data, callback.from_user.id)
     social_key = callback.data.split("_")[1]
-    if social_key == "add":
-        await state.set_state(stateQuest.info_social_key)
-        await callback.message.answer(quest.str_info_social_key[0])
-        return
-    if checksQuest.isInfoSocialKey(social_key, questionnaire):
-        questionnaire.info_social[social_key] = "" 
-        await state.update_data(questionnaire = questionnaire, social_key = social_key)
-        # print(questionnaire.__dict__)
-        await state.set_state(stateQuest.info_social_value)
-        await callback.message.answer(quest.str_info_social[1])
-    else:
-        await callback.message.answer(quest.str_info_social[2])
+    if len(callback.data.split("_")) == 2:
+        if social_key == "add":
+            await state.set_state(stateQuest.info_social_key)
+            await callback.message.answer(quest.str_info_social_key[0])
+            return
+        elif social_key == "edite": 
+            await callback.message.edit_text(quest.str_info_social_edite[0], reply_markup=quest.keyboardEditeSocial(questionnaire.info_social))
+            return
+        elif social_key == "del":
+            await callback.message.edit_text(quest.str_info_social_edite[1], reply_markup=quest.keyboardEditeSocial(questionnaire.info_social, False))
+            return
+        elif social_key == "end":
+            await state.clear()
+            await state.update_data(questionnaire = questionnaire)
+            await edit_quest(questionnaire, callback, state)
+        else:
+            if checksQuest.isInfoSocialKey(social_key, questionnaire):
+                questionnaire.info_social[social_key] = "" 
+                await state.update_data(questionnaire = questionnaire, social_key = social_key)
+                # возможно тут стоит сильнее расписать 
+                await callback.message.edit_text(quest.str_info_social[1], reply_markup=None)
+                # print(questionnaire.__dict__)
+                await state.set_state(stateQuest.info_social_value)
+            else:
+                await callback.message.answer(quest.str_info_social[2])
+    elif len(callback.data.split("_")) == 3:
+        if social_key == "edite":
+            social_key = callback.data.split("_")[2]
+            questionnaire.info_social[social_key] = "" 
+            await state.update_data(questionnaire = questionnaire, social_key = social_key)
+            await state.set_state(stateQuest.info_social_value)
+            await callback.message.answer(quest.str_info_social[1])
+        elif  social_key == "del":
+            social_key = callback.data.split("_")[2]
+            del questionnaire.info_social[social_key] 
+        else:
+            await callback.message.answer(quest.str_info_social[-1])
 
 
 async def add_quest_social_value(message: types.Message, state: FSMContext) -> None:
@@ -160,11 +186,12 @@ async def add_quest_social_value(message: types.Message, state: FSMContext) -> N
     if checksQuest.isInfoSocialValue(message.text):
         questionnaire.info_social[social_key] = message.text
         await state.set_state(stateQuest.info_social)
-        await bot.send_message( message.chat.id, text= quest.str_info_social_value[0] + quest.str_info_social[0], reply_markup=quest.keyboard_quest_social) 
         if checksQuest.isEdit(data):
-            await state.set_data({"questionnaire": questionnaire, "media_groups":data["media_groups"], "edit": data["edit"]})
+            await state.set_data({"questionnaire": questionnaire, "edit": data["edit"]})
+            await bot.send_message( message.chat.id, text= quest.str_info_social_value[0] + quest.str_info_social[0], reply_markup=quest.keyboard_edit_social)
         else:
             await state.set_data({"questionnaire": questionnaire, "media_groups":data["media_groups"]})
+            await bot.send_message( message.chat.id, text= quest.str_info_social_value[0] + quest.str_info_social[0], reply_markup=quest.keyboard_quest_social)
     else:
         await bot.send_message( message.chat.id, text= quest.str_info_social_value[1]) 
         
@@ -208,6 +235,7 @@ async def next_handler_images_end(callback: types.CallbackQuery, state: FSMConte
             await state.set_state(stateQuest.arr[index_state+1])
             await callback.message.answer(quest.arr_str[index_state+1][0], reply_markup=quest.arr_keyboard[index_state+1])
     else:
+        await callback.message.delete()
         await callback.message.answer(quest.arr_str[index_state][0], reply_markup=quest.arr_keyboard[index_state])
 
 async def add_quest_images(message: types.Message, state: FSMContext) -> None:
@@ -285,7 +313,7 @@ async def cancel_handler(callback: types.CallbackQuery, state: FSMContext) -> No
     await state.clear()
     await callback.message.edit_text(callback.message.text, reply_markup=None)
     if checksQuest.isEdit(data):
-        await state.clear()
+        await state.update_data(questionnaire = data["questionnaire"])
         await callback.message.answer(quest.str_end[1][1])
         await callback.message.answer(quest.str_edit[0], reply_markup=quest.keyboard_quest_edit)
     else:
@@ -329,3 +357,15 @@ async def download_media(data: dict, questionnaire: Questionnaire, callback: typ
             else:
                 print('Всё хорошо.')
         await state.set_data({"questionnaire": questionnaire})
+
+async def edit_quest(questionnaire: Questionnaire, callback: types.CallbackQuery or types.Message , state: FSMContext):
+    """
+    Сохранение изменений
+    """
+    data = await state.get_data()
+    questionnaire = checksQuest.isQuestionnaire(data, callback.from_user.id)
+    print(questionnaire.__dict__)
+    if (checksQuest.editQuest(questionnaire)):
+        await bot.send_message( callback.from_user.id, quest.str_end[0][1])
+        await bot.send_message( callback.from_user.id, quest.str_edit[0], reply_markup=quest.keyboard_quest_edit)
+        

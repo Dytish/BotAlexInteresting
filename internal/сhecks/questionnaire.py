@@ -10,13 +10,19 @@ def findQuestionnaire(questionnaire: dict) -> Questionnaire:
     """
     Запись словарика в класс модели
     """
-    questionnaire = Questionnaire( user_tg_id=questionnaire["user_tg_id"], images= questionnaire["images"],
+    print("social", type(questionnaire["info_social"]), questionnaire["info_social"])
+    info_social = json.loads(questionnaire["info_social"])
+    print("social", type(info_social))
+    questionnaireModel = Questionnaire( user_tg_id=questionnaire["user_tg_id"], images= questionnaire["images"],
                                   title=questionnaire["title"], previe= questionnaire["previe"],
                                   info=questionnaire["info"], info_mob= questionnaire["info_mob"],
-                                  info_social=questionnaire["info_social"], vip= questionnaire["vip"],
-                                  sub=questionnaire["sub"] )
-    print(questionnaire)
-    return questionnaire
+                                  info_social=info_social, vip= questionnaire["vip"],
+                                  sub=questionnaire["sub"], deleted_at = questionnaire["deleted_at"], active= questionnaire["active"])
+    print("ddd", questionnaireModel.__dict__)
+    setattr(questionnaireModel, 'created_at', questionnaire["created_at"])
+    setattr(questionnaireModel, 'id', questionnaire["id"])
+    print("ddd", questionnaireModel.__dict__)
+    return questionnaireModel
 
 def isEdit(data: dict) -> bool:
     """
@@ -57,10 +63,10 @@ def isSave( questionnaire:Questionnaire, messages:dict) -> (Questionnaire, str, 
     """
     if messages.photo:
         # print('foto')
-        name = messages.photo[-1].file_unique_id + ".jpg"
+        name = messages.photo[-1].file_id + ".jpg"
     elif messages.video:
         # print('video')
-        name = messages.video.file_unique_id + ".WEBM"
+        name = messages.video.file_id + ".WEBM"
         # path = os.path.join(f"pkg/images/{name}")
     questionnaire.images.append(name)
     path = quest.path.format(name)
@@ -147,20 +153,42 @@ def allowedText(index_state: int) -> bool:
     """
     return 0 < index_state < 5
 
+def prepQuest( questionnaire: Questionnaire ) -> (tuple, list or dict):
+    """
+    Подготовка анкеты переводим ее в tuple, а фотографий в list
+    """
+    questionnaire_dict = questionnaire.dict()
+    if questionnaire_dict["deleted_at"] == 0:
+        questionnaire_dict["deleted_at"] = None
+        # del questionnaire_dict["deleted_at"]
+    print("aaa", questionnaire.__dict__)
+    images = questionnaire_dict["images"]
+    # print(questionnaire_dict)
+    del questionnaire_dict['images']
+    print("aaa", questionnaire.__dict__)
+    questionnaire_tuple = tuple(questionnaire_dict.values())
+    return questionnaire_tuple, images
+
+def editQuest(questionnaire: Questionnaire) -> bool:
+    """
+    Изменение анкеты и фотографий
+    """
+    questionnaire.info_social = json.dumps(questionnaire.info_social)
+    questionnaire_tuple, images = prepQuest(questionnaire)
+    dbUQuest.edit_quest(questionnaire_tuple)
+    questionnaire.info_social = json.loads(questionnaire.info_social)
+    print("anketa", questionnaire.__dict__)
+    # print(images)
+    return True
+
 def sendQuest(questionnaire: Questionnaire) -> bool:
     """
     Сохранение анкеты и фотографий
     """
     questionnaire.info_social = json.dumps(questionnaire.info_social)
     questionnaire.newQuest()
-    questionnaire_dict = questionnaire.__dict__
-    if questionnaire_dict["deleted_at"] == 0:
-        questionnaire_dict["deleted_at"] = None
-    images = questionnaire_dict["images"]
-    print(questionnaire_dict)
-    del questionnaire_dict['images']
-    print(questionnaire_dict)
-    questionnaire_tuple = tuple(questionnaire_dict.values())
+    questionnaire_tuple, images = prepQuest(questionnaire)
+    
     # try:
     insertId = dbUQuest.add_new(questionnaire_tuple)
     images_list = []
@@ -169,6 +197,7 @@ def sendQuest(questionnaire: Questionnaire) -> bool:
         path = quest.path.format(image)
         storage.child(cloudfilename).put(path)
         url = storage.child(cloudfilename).get_url(None)
+
         images_list.append((image, url, insertId))
     print(questionnaire_tuple)
     dbUQuest.add_new_images(images_list)

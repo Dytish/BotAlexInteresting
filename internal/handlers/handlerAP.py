@@ -6,6 +6,7 @@ from internal.app.user import user as app_user
 from internal.models import user as modelUser
 from internal.сhecks import user as checkUser
 from aiogram import Router
+from internal.filters.user_type import IsMedia
 
 router: Router = Router()
 # from internal.database.request_db import request_user_bd
@@ -58,9 +59,22 @@ async def process_terdsms_command(message: types.Message):
 
     await bot.send_message( message.chat.id, app_user.str_start, reply_markup= checkUser.typeСhecking(us.id_telegram) ) 
 
+
+async def test1(message: types.Message):
+    if message.photo:
+        # print('foto')
+        print(message.photo[-1])
+        if message.photo[-1].file_unique_id == "AQADyM8xG_QdsUh-":
+            await bot.send_photo(chat_id=message.from_user.id, photo="AgACAgIAAxkBAAIa8GUWybb5qlLoO6oBawQamuhMicnxAALIzzEb9B2xSGXcYp0Rj0U2AQADAgADeQADMAQ")
+        # await bot.send_photo(chat_id=message.from_user.id, photo="AQADyM8xG_QdsUh-")
+    elif message.video:
+        # print('video')
+         print(message.video)
+   
 # @dp.message(F.text)
 # async def handle_contact(message: types.Message):
 #     print(message.from_user)
 #     await bot.send_message(message.chat.id, f"Спасибо! Я получил твой номер телефона: {message}")
 
 dp.message.register(process_terdsms_command, Command("start"))
+# dp.message.register(test1, IsMedia())

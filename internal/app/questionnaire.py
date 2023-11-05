@@ -10,6 +10,7 @@ class questionnaire:
     str_info = ["Что будет в info?", "Попробуйте ввести еще раз"]
     str_info_mob = ["Введите номер телефона?", "Попробуйте ввести еще раз"]
     str_info_social = ["Хотите добавить соц. сети?", "Добавьте ссылку на соц. сети", "К сожалению такая соц. сеть есть\nПопробуйте другую", "Я не понимаю ваш текст\nНажмите на кнопку"]
+    str_info_social_edite = ["Вы можете нажать на свою соц. сеть и изменить ссылку \n Или вы можете добавить самостоятельно соц сеть", "Вы можете нажать на кнопку и удалить соц. сеть"]
     str_vip = ["Хотите добавить анкету в топ?", "Это место занято", "Вы выбрали место", "Я не понимаю ваш текст\nНажмите на кнопку"]
     str_sub = ["Хотите оформить подписку?", "Подписка не продлена", "Подписка продлена",  "Я не понимаю ваш текст\nНажмите на кнопку"]
     str_end = [["Анкета записана", "Анкета изменина"], ["Анкета не записана", "Анкета не изменина"]]
@@ -36,9 +37,9 @@ class questionnaire:
 
     buttons_quest_images = [
         [types.InlineKeyboardButton(text="Отправлены все фотографии", callback_data="images_отмена")],
-        [types.InlineKeyboardButton(text="Пропустить этот пункт", callback_data="next")],
         [types.InlineKeyboardButton(text="Отменить все", callback_data="cancel")]
     ]
+    # [types.InlineKeyboardButton(text="Пропустить этот пункт", callback_data="next")],
     keyboard_quest_images = types.InlineKeyboardMarkup(inline_keyboard=buttons_quest_images)
 
     buttons_quest_vip = [
@@ -62,7 +63,7 @@ class questionnaire:
         [types.InlineKeyboardButton(text="Telegram", callback_data="social_Telegram"), 
          types.InlineKeyboardButton(text="WhatsApp", callback_data="social_WhatsApp")],
         [types.InlineKeyboardButton(text="Добавить соц. сеть самостоятельно", callback_data="social_add")],
-        [types.InlineKeyboardButton(text="Пропустить этот пункт", callback_data="next")],
+        [types.InlineKeyboardButton(text="Далее", callback_data="next")],
         [types.InlineKeyboardButton(text="Отменить все", callback_data="cancel")]
     ]
     keyboard_quest_social = types.InlineKeyboardMarkup(inline_keyboard=buttons_quest_social)
@@ -119,10 +120,9 @@ class questionnaire:
     keyboard_edit_sub = types.InlineKeyboardMarkup(inline_keyboard=buttons_edit_sub)
 
     buttons_edit_social = [
-        [types.InlineKeyboardButton(text="Telegram", callback_data="social_Telegram"), 
-         types.InlineKeyboardButton(text="WhatsApp", callback_data="social_WhatsApp")],
-        [types.InlineKeyboardButton(text="Добавить соц. сеть самостоятельно", callback_data="social_add")],
-        [types.InlineKeyboardButton(text="Отменить", callback_data="cancel")]
+        [types.InlineKeyboardButton(text="Удалить", callback_data="social_del")],
+        [types.InlineKeyboardButton(text="Изменить/добавить", callback_data="social_edite")],
+        [types.InlineKeyboardButton(text="Закончить с соц.сетями", callback_data="social_end")]
     ]
     keyboard_edit_social = types.InlineKeyboardMarkup(inline_keyboard=buttons_edit_social)
 
@@ -130,3 +130,20 @@ class questionnaire:
                keyboard_edit, keyboard_edit, 
                keyboard_edit, keyboard_edit_social, 
                keyboard_edit_vip, keyboard_edit_sub]
+    def keyboardEditeSocial(social: dict, character: bool = True) -> types.InlineKeyboardMarkup:
+        """
+        создание клавиатуры для удаления/изменения соц.сетей
+        character == True, значит изменение 
+        """
+        buttons = []
+        for key, value in social.items():
+            print(key, value)
+            if character :
+                buttons.append([types.InlineKeyboardButton(text=f"{key}", callback_data=f"social_edite_{key}")])
+            else:
+                buttons.append([types.InlineKeyboardButton(text=f"{key}", callback_data=f"social_del_{key}")])
+        if character :
+            buttons.append([types.InlineKeyboardButton(text="Добавить соц. сеть самостоятельно", callback_data="social_add")])
+        buttons.append([types.InlineKeyboardButton(text="Закончить с соц.сетями", callback_data="social_end")])
+        print(buttons)
+        return types.InlineKeyboardMarkup(inline_keyboard=buttons)
