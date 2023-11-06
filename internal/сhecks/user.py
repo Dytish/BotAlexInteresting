@@ -38,7 +38,7 @@ def typeСhecking(id_telegram: int) -> types.ReplyKeyboardMarkup:
     take_type_user = dbUser.take_type_user(id_telegram)
     print(take_type_user)
     if isAdmin(id_telegram):
-        return app_user.keyboard_user_admin 
+        return app_user.keyboard_user_admin(id_telegram) 
     else:
         return app_user.keyboard_user_user
         # print("sd", user.__dict__)

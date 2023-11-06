@@ -153,30 +153,29 @@ def allowedText(index_state: int) -> bool:
     """
     return 0 < index_state < 5
 
-def prepQuest( questionnaire: Questionnaire ) -> (tuple, list or dict):
+def prepQuest( questionnaire: Questionnaire ) -> (dict, list or dict):
     """
-    Подготовка анкеты переводим ее в tuple, а фотографий в list
+    Подготовка анкеты переводим ее в dict, а фотографий в list
     """
     questionnaire_dict = questionnaire.dict()
-    if questionnaire_dict["deleted_at"] == 0:
-        questionnaire_dict["deleted_at"] = None
         # del questionnaire_dict["deleted_at"]
     print("aaa", questionnaire.__dict__)
     images = questionnaire_dict["images"]
     # print(questionnaire_dict)
+    questionnaire_dict['info_social'] = json.dumps(questionnaire_dict['info_social'])
+    del questionnaire_dict['id']
     del questionnaire_dict['images']
     print("aaa", questionnaire.__dict__)
-    questionnaire_tuple = tuple(questionnaire_dict.values())
-    return questionnaire_tuple, images
+    # questionnaire_tuple = tuple(questionnaire_dict.values())
+    return questionnaire_dict, images
 
 def editQuest(questionnaire: Questionnaire) -> bool:
     """
     Изменение анкеты и фотографий
     """
-    questionnaire.info_social = json.dumps(questionnaire.info_social)
-    questionnaire_tuple, images = prepQuest(questionnaire)
-    dbUQuest.edit_quest(questionnaire_tuple)
-    questionnaire.info_social = json.loads(questionnaire.info_social)
+    questionnaire_dict, images = prepQuest(questionnaire)
+    dbUQuest.edit_quest(questionnaire_dict, questionnaire.id)
+    # questionnaire.info_social = json.loads(questionnaire.info_social)
     print("anketa", questionnaire.__dict__)
     # print(images)
     return True
@@ -185,12 +184,11 @@ def sendQuest(questionnaire: Questionnaire) -> bool:
     """
     Сохранение анкеты и фотографий
     """
-    questionnaire.info_social = json.dumps(questionnaire.info_social)
     questionnaire.newQuest()
-    questionnaire_tuple, images = prepQuest(questionnaire)
+    questionnaire_dict, images = prepQuest(questionnaire)
     
     # try:
-    insertId = dbUQuest.add_new(questionnaire_tuple)
+    insertId = dbUQuest.add_new(questionnaire_dict)
     images_list = []
     for image in images:
         cloudfilename = quest.cloudfilename.format(image) 
@@ -199,7 +197,7 @@ def sendQuest(questionnaire: Questionnaire) -> bool:
         url = storage.child(cloudfilename).get_url(None)
 
         images_list.append((image, url, insertId))
-    print(questionnaire_tuple)
+    print(questionnaire_dict)
     dbUQuest.add_new_images(images_list)
     print(images_list)
     return True

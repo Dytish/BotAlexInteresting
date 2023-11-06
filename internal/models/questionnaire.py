@@ -44,20 +44,29 @@ class Questionnaire:
             self.info_social = info_social
         else:
             self.info_social = info_social
+
         if vip == None:
             vip = 10
-        self.vip = vip
+        else:
+            self.vip = vip
+
         if sub == None:
             sub = datetime.now() - timedelta(days=1)
         if type(sub) == str:
             self.sub = dateutil.parser.isoparse(sub)
         else:
             self.sub = sub 
+
         self.updated_at = datetime.now()
         if deleted_at == None:
-            self.deleted_at = 0
+            self.deleted_at = None
+        else:
+            self.deleted_at = deleted_at
+
         if active == None:
             self.active = False
+        else:
+            self.active = active
     # def __getitem__(self, index):
 
     #     if index >= 5:
@@ -100,3 +109,4 @@ class Questionnaire:
             print(key, value)
             quesrDict[str(key)] = value
         return quesrDict
+    

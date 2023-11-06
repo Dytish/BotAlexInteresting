@@ -38,20 +38,28 @@ async def edit_start(webAppMes, state: FSMContext) -> None:
         else:
             image.append(InputMediaPhoto(media=image_from_url))
         
-    # await bot.send_media_group(chat_id=webAppMes.chat.id, media=image)
-    # await bot.send_message( webAppMes.chat.id, quest.str_edit[0], reply_markup=quest.keyboard_quest_edit) 
+    await bot.send_media_group(chat_id=webAppMes.chat.id, media=image)
+    await bot.send_message( webAppMes.chat.id, quest.str_edit[0], reply_markup=quest.keyboard_quest_edit) 
 
 async def edit_callback(callback: types.CallbackQuery, state: FSMContext) -> None:
+    """
+    отлпвливаются все хендлеры на первой менюшке изменения анкеты
+    там выбираем что менять/закончить изменения/удалить анкету
+    """
     await callback.message.edit_text(callback.message.text, reply_markup=None)
     print(callback.data.split("_")[1])
     number = callback.data.split("_")[1]
     if number == "end":
+        # data = await state.get_data()
+        await bot.send_message( callback.from_user.id, quest.str_end[0][1])
+        await state.clear()
+    elif number == "delete":
         data = await state.get_data()
         questionnaire = checksQuest.isQuestionnaire(data, callback.from_user.id)
-        print(questionnaire.__dict__)
+        questionnaire.delQuest()
         if (checksQuest.editQuest(questionnaire)):
-            await callback.message.answer(quest.str_end[0][1])
-        print(questionnaire.__dict__)
+            await bot.send_message( callback.from_user.id, quest.str_end[0][2])
+        await state.clear()
     else:
         number = int(number)
         await state.update_data(edit = True)

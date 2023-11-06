@@ -13,7 +13,7 @@ class questionnaire:
     str_info_social_edite = ["Вы можете нажать на свою соц. сеть и изменить ссылку \n Или вы можете добавить самостоятельно соц сеть", "Вы можете нажать на кнопку и удалить соц. сеть"]
     str_vip = ["Хотите добавить анкету в топ?", "Это место занято", "Вы выбрали место", "Я не понимаю ваш текст\nНажмите на кнопку"]
     str_sub = ["Хотите оформить подписку?", "Подписка не продлена", "Подписка продлена",  "Я не понимаю ваш текст\nНажмите на кнопку"]
-    str_end = [["Анкета записана", "Анкета изменина"], ["Анкета не записана", "Анкета не изменина"]]
+    str_end = [["Анкета записана", "Анкета изменина", "Анкета удалена"], ["Анкета не записана", "Анкета не изменина"]]
     arr_str = [str_images, str_title, str_previe, str_info, str_info_mob,
                str_info_social, str_vip, str_sub, str_end]
     
@@ -85,7 +85,8 @@ class questionnaire:
     button_sub = types.InlineKeyboardButton(text="Изменить подписку", callback_data="edit_7")
     buttons_quest_edit = [[button_images, button_title], [button_previe, button_info], [button_info_mob,
                button_info_social], [button_vip, button_sub],
-               [types.InlineKeyboardButton(text="Закончить изменения", callback_data="edit_end")]]
+               [types.InlineKeyboardButton(text="Закончить изменения", callback_data="edit_end")],
+               [types.InlineKeyboardButton(text="Удалить анкету", callback_data="edit_delete")]]
     keyboard_quest_edit = types.InlineKeyboardMarkup(inline_keyboard=buttons_quest_edit)
     buttons_edit = [
         [types.InlineKeyboardButton(text="Изменить", callback_data="edit_True"), types.InlineKeyboardButton(text="Отмена", callback_data="edit_False")]
